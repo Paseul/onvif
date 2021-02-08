@@ -11,6 +11,7 @@ import cv2
 import os
 from cv2 import dnn_superres
 import pandas as pd
+import ptz_control
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -50,17 +51,17 @@ writer = None
 data = []
 count = 0
 
+ptz = ptz_control.ptzControl()
+
 # loop over frames from the video stream
 while True:
 	# grab the current frame, then handle if we are using a
 	# VideoStream or VideoCapture object
-	success, frame = vs.read()	
-	frame = cv2.flip(frame, 0)
-
+	success, frame = vs.read()
 	# check to see if we have reached the end of the stream
 	if frame is None:
 		break
-
+	frame = cv2.flip(frame, 0)
 	# check to see if we are currently tracking an object
 	if initBB is not None:
 		# grab the new bounding box coordinates of the object
@@ -69,14 +70,23 @@ while True:
 		if success:
 			(x, y, w, h) = [int(v) for v in box]
 			cv2.rectangle(frame, (x, y), (x + w, y + h),
-				(0, 255, 0), 1)				
+				(0, 255, 0), 1)
+			if count % 10 == 0:
+				move_x = -(640-x)/6400
+				move_y = -(360-y)/3600
+				velocity = np.sqrt(move_x**2 + move_y**2)
+				if velocity > 0.001 and velocity <= 0.01:
+					ptz.move_relative(move_x, move_y, velocity)
+				if velocity > 0.01:
+					print(velocity)
+					ptz.move_relative(move_x, move_y, 100)
 		# (gt_x, gt_y, gt_w, gt_h) = cv2.selectROI("Frame", frame, fromCenter=False, showCrosshair=True)		
 		# frame = cv2.rectangle(frame, (gt_x, gt_y), (gt_x + gt_w, gt_y + gt_h), (0, 0, 255), 1)
 		# area_x = min(x + w, gt_x + gt_w) - max(x, gt_x)
 		# area_y = min(y + h, gt_y + gt_h) - max(y, gt_y)
 		# iou = area_x * area_y / (w * h + gt_w * gt_h - area_x * area_y)
 
-		data.append([count, x, y, w, h])
+		# data.append([count, x, y, w, h])
 		
 		# frame = cv2.resize(frame, dsize=(640, 480), interpolation=cv2.INTER_CUBIC)
 		
@@ -105,8 +115,8 @@ while True:
 			writer = cv2.VideoWriter(args["output"], fourcc, 30,
 				(frame.shape[1], frame.shape[0]), True)	
 		count += 1
-	if count == 1000:
-		break
+	# if count == 1000:
+	# 	break
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
@@ -123,7 +133,25 @@ while True:
 
 	# if the 's' key is selected, we are going to "select" a bounding
 	# box to track
-	if key == ord("s"):		
+	elif key == ord("w"):
+		ptz.move_relative(0, -0.01, 0)
+
+	elif key == ord("s"):
+		ptz.move_relative(0, 0.01, 0)
+
+	elif key == ord("a"):
+		ptz.move_relative(-0.01, 0, 0)
+
+	elif key == ord("d"):
+		ptz.move_relative(0.01, 0, 0)
+
+	elif key == ord("="):
+		ptz.zoom_relative(0.1, 0)
+
+	elif key == ord("-"):
+		ptz.zoom_relative(-0.1, 0)
+
+	if key == ord("c"):
 		tracker = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
 		# select the bounding box of the object we want to track (make
 		# sure you press ENTER or SPACE after selecting the ROI)
@@ -141,6 +169,6 @@ while True:
 
 vs.release()
 # close all windows
-df = pd.DataFrame(data)
-df.to_csv('output.csv', index = False)
+# df = pd.DataFrame(data)
+# df.to_csv('output.csv', index = False)
 cv2.destroyAllWindows()
