@@ -71,15 +71,14 @@ while True:
 			(x, y, w, h) = [int(v) for v in box]
 			cv2.rectangle(frame, (x, y), (x + w, y + h),
 				(0, 255, 0), 1)
-			if count % 10 == 0:
+			if count % 30 == 0:
 				move_x = -(640-x)/6400
 				move_y = -(360-y)/3600
 				velocity = np.sqrt(move_x**2 + move_y**2)
 				if velocity > 0.001 and velocity <= 0.01:
 					ptz.move_relative(move_x, move_y, velocity)
 				if velocity > 0.01:
-					print(velocity)
-					ptz.move_relative(move_x, move_y, 100)
+					ptz.move_relative(move_x, move_y, 1)
 		# (gt_x, gt_y, gt_w, gt_h) = cv2.selectROI("Frame", frame, fromCenter=False, showCrosshair=True)		
 		# frame = cv2.rectangle(frame, (gt_x, gt_y), (gt_x + gt_w, gt_y + gt_h), (0, 0, 255), 1)
 		# area_x = min(x + w, gt_x + gt_w) - max(x, gt_x)
@@ -134,16 +133,16 @@ while True:
 	# if the 's' key is selected, we are going to "select" a bounding
 	# box to track
 	elif key == ord("w"):
-		ptz.move_relative(0, -0.01, 0)
+		ptz.move_relative(0, -0.05, 0)
 
 	elif key == ord("s"):
-		ptz.move_relative(0, 0.01, 0)
+		ptz.move_relative(0, 0.05, 0)
 
 	elif key == ord("a"):
-		ptz.move_relative(-0.01, 0, 0)
+		ptz.move_relative(-0.05, 0, 0)
 
 	elif key == ord("d"):
-		ptz.move_relative(0.01, 0, 0)
+		ptz.move_relative(0.05, 0, 0)
 
 	elif key == ord("="):
 		ptz.zoom_relative(0.1, 0)
@@ -160,7 +159,7 @@ while True:
 		# start OpenCV object tracker using the supplied bounding box
 		# coordinates, then start the FPS throughput estimator as well
 		tracker.init(frame, initBB)
-		
+
 		fps = FPS().start()
 
 	# if the `q` key was pressed, break from the loop
