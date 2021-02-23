@@ -1,20 +1,14 @@
-import asyncio, sys
-from time import sleep
+import sys
+sys.path.append('/home/jh/.virtualenvs/onvif/lib/python3.6/site-packages/wsdl')
 from onvif import ONVIFCamera
+from time import sleep
 
 IP = "192.168.1.64"  # Camera IP address
 PORT = 80  # Port
 USER = "admin"  # Username
 PASS = "laser123"  # Password
 
-
-import sys
-sys.path.append('/home/jh/.virtualenvs/onvif/lib/python3.6/site-packages/wsdl')
-
-from onvif import ONVIFCamera
-from time import sleep
-
-class ptzcam():
+class ptzControl():
     def __init__(self):
     #Several cameras that have been tried  -------------------------------------
     #Netcat camera (on my local network) Port 8899
@@ -64,8 +58,11 @@ class ptzcam():
         self.requestr.ProfileToken = self.media_profile.token
         if self.requestr.Translation is None:
             self.requestr.Translation = self.ptz.GetStatus({'ProfileToken': self.media_profile.token}).Position
+            self.requestr.Translation.PanTilt.space = ptz_configuration_options.Spaces.RelativePanTiltTranslationSpace[0].URI
+            self.requestr.Translation.Zoom.space = ptz_configuration_options.Spaces.RelativeZoomTranslationSpace[0].URI
         if self.requestr.Speed is None:
             self.requestr.Speed = self.ptz.GetStatus({'ProfileToken': self.media_profile.token}).Position
+
 
         self.requests = self.ptz.create_type('Stop')
         self.requests.ProfileToken = self.media_profile.token
@@ -122,9 +119,9 @@ class ptzcam():
     def move_relative(self, pan, tilt, velocity):
         self.requestr.Translation.PanTilt.x = pan
         self.requestr.Translation.PanTilt.y = tilt
-        self.requestr.Speed.PanTilt._x = velocity
-        ret = self.requestr.Speed.PanTilt.y = velocity
-        self.ptz.RelativeMove(self.requestr)
+        self.requestr.Speed.PanTilt.x = velocity
+        self.requestr.Speed.PanTilt.y = velocity
+        ret = self.ptz.RelativeMove(self.requestr)
         sleep(2.0)
 
 #Sets preset set, query and and go to
@@ -141,9 +138,6 @@ class ptzcam():
         self.ptz.GotoPreset(self.requestg)
 
 if __name__ == '__main__':
-    ptz = ptzcam()
-    ptz.move_abspantilt(0.0, 0.0, 0.1)
-    ptz.move_abspantilt(0.0, 1, 0.1)
-    # ptz.move_abspantilt(1.0, 1.0, 0.1)
-    # ptz.move_abspantilt(-1.0, -1.0, 0.1)
-    ptz.stop()
+    ptz = ptzControl()
+    ptz.move_relative(0, 1, 1)
+    # ptz.zoom(-1, 2)
