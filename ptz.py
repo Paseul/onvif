@@ -23,13 +23,9 @@ def do_move(ptz, request):
         ptz.Stop({'ProfileToken': request.ProfileToken})
     active = True
     ptz.ContinuousMove(request)
-
-
-def stop(ptz, request):
-    print('move up...')
-    request.Velocity.PanTilt.x = 0
-    request.Velocity.PanTilt.y = 0
-    do_move(ptz, request)
+    sleep(1)
+    # Stop continuous move
+    ptz.Stop({'ProfileToken': request.ProfileToken})
 
 
 def move_up(ptz, request):
@@ -122,8 +118,12 @@ def setup_move():
     YMIN = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[0].YRange.Min
 
     move_left(ptz, moverequest)
-    sleep(2)
-    stop(ptz, moverequest)
+    move_right(ptz, moverequest)
+
+    # move_down(ptz, moverequest)
+    # move_up(ptz, moverequest)
+    # sleep(2)
+    # stop(ptz, moverequest)
     #
     # sleep(2)
     #
