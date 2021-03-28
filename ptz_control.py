@@ -63,7 +63,6 @@ class ptzControl():
         if self.requestr.Speed is None:
             self.requestr.Speed = self.ptz.GetStatus({'ProfileToken': self.media_profile.token}).Position
 
-
         self.requests = self.ptz.create_type('Stop')
         self.requests.ProfileToken = self.media_profile.token
 
@@ -83,28 +82,28 @@ class ptzControl():
         self.ptz.Stop(self.requests)
 
 #Continuous move functions
-    def perform_move(self, timeout):
+    def perform_move(self, requestc):
         # Start continuous move
-        ret = self.ptz.ContinuousMove(self.requestc)
-        # Wait a certain time
-        sleep(timeout)
-        # Stop continuous move
-        self.stop()
-        # sleep(2)
+        ret = self.ptz.ContinuousMove(requestc)
 
-    def move_tilt(self, velocity, timeout):
+    def move_tilt(self, velocity):
         self.requestc.Velocity.PanTilt.x = 0.0
         self.requestc.Velocity.PanTilt.y = velocity
-        self.perform_move(timeout)
+        self.perform_move(self.requestc)
 
-    def move_pan(self, velocity, timeout):
+    def move_pan(self, velocity):
         self.requestc.Velocity.PanTilt.x = velocity
         self.requestc.Velocity.PanTilt.y = 0.0
-        self.perform_move(timeout)
+        self.perform_move(self.requestc)
 
-    def zoom(self, velocity, timeout):
+    def move_continuous(self, pan, tilt):
+        self.requestc.Velocity.PanTilt.x = pan
+        self.requestc.Velocity.PanTilt.y = tilt
+        self.perform_move(self.requestc)
+
+    def zoom(self, velocity):
         self.requestc.Velocity.Zoom.x = velocity
-        self.perform_move(timeout)
+        self.perform_move(self.requestc)
 
 #Absolute move functions --NO ERRORS BUT CAMERA DOES NOT MOVE
     def move_abspantilt(self, pan, tilt, velocity):
@@ -113,7 +112,6 @@ class ptzControl():
         self.requesta.Speed.PanTilt.x = velocity
         self.requesta.Speed.PanTilt.y = velocity
         ret = self.ptz.AbsoluteMove(self.requesta)
-        # sleep(2.0)
 
 #Relative move functions --NO ERRORS BUT CAMERA DOES NOT MOVE
     def move_relative(self, pan, tilt, velocity):
@@ -122,7 +120,6 @@ class ptzControl():
         self.requestr.Speed.PanTilt.x = velocity
         self.requestr.Speed.PanTilt.y = velocity
         ret = self.ptz.RelativeMove(self.requestr)
-        # sleep(2.0)
 
     def zoom_relative(self, zoom, velocity):
         self.requestr.Translation.PanTilt.x = 0
@@ -132,7 +129,6 @@ class ptzControl():
         self.requestr.Speed.PanTilt.y = 0
         self.requestr.Speed.Zoom.x = velocity
         ret = self.ptz.RelativeMove(self.requestr)
-        # sleep(2.0)
 
 #Sets preset set, query and and go to
     def set_preset(self, name):
