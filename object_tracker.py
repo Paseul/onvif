@@ -280,12 +280,12 @@ while True:
 			text = "{}: {}".format(k, v)
 			cv2.putText(frame, text, (10, 60 - ((i * 20) + 20)),
 				cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-
-		if args["output"] != "" and writer is None:
-		# initialize our video writer
-			fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-			writer = cv2.VideoWriter(args["output"], fourcc, 30,
-				(frame.shape[1], frame.shape[0]), True)	
+	frame = cv2.resize(frame, dsize=(640, 360), interpolation=cv2.INTER_CUBIC)
+	if args["output"] != "" and writer is None:
+	# initialize our video writer
+		fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+		writer = cv2.VideoWriter(args["output"], fourcc, 60,
+			(640, 360), True)	
 		count += 1
 	# if count == 1000:
 	# 	break
@@ -340,6 +340,7 @@ while True:
 		break
 
 vs.release()
+writer.release()
 # close all windows
 # df = pd.DataFrame(data)
 # df.to_csv('output.csv', index = False)
